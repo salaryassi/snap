@@ -113,6 +113,9 @@ def init_db(db_path: str):
     # 3. As a safeguard, run the migration function for users with older DBs
     add_missing_snapshot_columns(conn)
 
+    # Add index for faster queries
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_symbol_time ON snapshots (symbol, snapshot_time)")
+
     conn.commit()
     return conn
 
@@ -189,6 +192,19 @@ def insert_snapshot_row(cur: sqlite3.Cursor, t: str, s: str, canonical: Dict[str
     cur.execute(sql, values)
 
 
+def update_coins_table(cur: sqlite3.Cursor, t: str, symbol: str, coin_data: Dict[str, Any]):
+    name = coin_data.get("name") or coin_data.get("n")
+    lc_id = coin_data.get("id") or coin_data.get("i")
+    if name is None or lc_id is None:
+        return  # Skip if essential fields are missing
+    
+    # Use INSERT OR REPLACE with COALESCE for first_seen
+    cur.execute("""
+        INSERT OR REPLACE INTO coins (symbol, name, lc_id, first_seen, last_seen)
+        VALUES (?, ?, ?, COALESCE((SELECT first_seen FROM coins WHERE symbol = ?), ?), ?)
+    """, (symbol, str(name), str(lc_id), symbol, t, t))
+
+
 def snapshot_market_v1(api_key: str, conn: sqlite3.Connection, market_cap_threshold: float, max_pages: int, page_size: int, page_delay: float):
     cur = conn.cursor()
     t = now_iso()
@@ -212,6 +228,7 @@ def snapshot_market_v1(api_key: str, conn: sqlite3.Connection, market_cap_thresh
             other_fields_json = json.dumps(other_fields)
             
             insert_snapshot_row(cur, t, symbol, canonical_data, other_fields_json, raw_json)
+            update_coins_table(cur, t, symbol, coin_data)
             collected_count += 1
         conn.commit()
         if page < max_pages - 1: time.sleep(page_delay)
@@ -242,9 +259,9 @@ def main():
     p = argparse.ArgumentParser(description="LunarCrush market snapshot collector.")
     p.add_argument("--api-key", help="LunarCrush API key (or set LUNARCRUSH_API_KEY)")
     p.add_argument("--db", default="lunarcrush.db", help="SQLite DB path")
-    p.add_argument("--interval", type=int, default=3600, help="Polling interval in seconds")
+    p.add_argument("--interval", type=int, default=3, help="Polling interval in seconds")
     p.add_argument("--market-cap-threshold", type=float, default=1e6, help="Min market cap")
-    p.add_argument("--max-pages", type=int, default=20, help="Max pages to scan")
+    p.add_argument("--max-pages", type=int, default=2, help="Max pages to scan")
     p.add_argument("--page-size", type=int, default=100, help="Coins per page")
     p.add_argument("--page-delay", type=float, default=2.0, help="Delay between pages")
     p.add_argument("--run-for-iterations", type=int, help="Stop after N runs")
