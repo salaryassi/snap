@@ -1,0 +1,27 @@
+LunarCrush refactored Analysis Summary (v3)
+==========================================
+DB path: lunarcrush.db
+Symbols (after filter): 95
+Records: 3598
+
+Features used:
+alt_rank, alt_rank_delta_1, alt_rank_pct_change_1, alt_rank_3h_mean, alt_rank_3h_std, alt_rank_3h_z, alt_rank_6h_mean, alt_rank_6h_std, alt_rank_6h_z, alt_rank_12h_mean, alt_rank_12h_std, alt_rank_12h_z, alt_rank_pct_rank, social_volume_24h_3h_z, social_volume_24h_6h_z, interactions_24h_3h_z, interactions_24h_6h_z, volume_24h_3h_z, volume_24h_6h_z, market_cap_24h_mean, market_cap_3h_z, altZ_volZ_3h, altZ_socialZ_3h
+
+Horizons tried: [2, 6, 8, 12, 16]
+pos_threshold (for classification): 0.0
+
+--- Horizon 2h ---
+{'count': 33, 'mean': -0.0027588826622695754, 'std': 0.005167030536806504, 'final_growth': 0.9124705421959427, 'win_frac': 0.3333333333333333}
+
+--- Horizon 6h ---
+{'count': 29, 'mean': -0.0017283916990226582, 'std': 0.00919800125994814, 'final_growth': 0.9499371945510473, 'win_frac': 0.5172413793103449}
+
+--- Horizon 8h ---
+{'count': 27, 'mean': -0.001284785077269728, 'std': 0.008675676634013842, 'final_growth': 0.9649351126877974, 'win_frac': 0.5185185185185185}
+
+--- Horizon 12h ---
+{'count': 23, 'mean': -0.0002215616728571861, 'std': 0.013139903760492589, 'final_growth': 0.9930283560855253, 'win_frac': 0.5217391304347826}
+
+--- Horizon 16h ---
+{'count': 19, 'mean': -0.001303617147122326, 'std': 0.009046733150838513, 'final_growth': 0.9748018107562442, 'win_frac': 0.42105263157894735}
+

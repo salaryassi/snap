@@ -1,0 +1,330 @@
+#!/usr/bin/env python3
+"""
+main_lunar_analysis_runner.py
+
+This script automates running lunarcrush_analysis_refactored_v3.py with multiple configurations,
+collects results from output files, analyzes them (e.g., compares performance metrics),
+and compiles a comprehensive summary into a single TXT file.
+
+Usage:
+- Ensure lunarcrush_analysis_refactored_v3.py is in the same directory.
+- Customize CONFIGS list below with desired CLI variations.
+- Run: python3 main_lunar_analysis_runner.py --db your_db.db --output-file results_summary.txt
+
+Features:
+- Runs each config sequentially via subprocess.
+- Reads summary.txt, quintile_stats.csv, and portfolio.csv per run.
+- Computes aggregate stats (e.g., avg mean return across horizons).
+- Outputs a detailed TXT report.
+"""
+import argparse
+import subprocess
+import pandas as pd
+import matplotlib.pyplot as plt
+from pathlib import Path
+import datetime
+import os
+
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet
+# Define configurations: Each is a dict with 'name' and 'args' (list of CLI flags)
+CONFIGS = [
+    {
+        'name': 'Regression Short Horizon',
+        'prefix': 'lunar_test_regression_h2',
+        'args': ['--model-type', 'regression', '--horizons', '2,8,12', '--top-n', '10', '--reg-param', '1.0']
+    },
+    {
+        'name': 'Regression High Reg',
+        'prefix': 'lunar_test_regression_highreg',
+        'args': ['--model-type', 'regression', '--reg-param', '10.0', '--horizons', '2,6,8,12,16', '--top-n', '30', '--min-train-rows', '100']
+    },
+    {
+        'name': 'Classification Pos Threshold',
+        'prefix': 'lunar_test_class_pos05',
+        'args': ['--model-type', 'classification', '--pos-threshold', '0.005', '--horizons', '6,8,12', '--top-n', '15', '--reg-param', '0.1']
+    },
+    {
+        'name': 'Classification Low Reg Long Horizon',
+        'prefix': 'lunar_test_class_lowreg_h24',
+        'args': ['--model-type', 'classification', '--reg-param', '0.01', '--horizons', '8,12,16,24', '--pos-threshold', '0.002', '--min-mean-volume', '100000']
+    },
+    {
+        'name': 'Rule vs Model',
+        'prefix': 'lunar_test_rule_vs_model',
+        'args': ['--run-rule', '--model-type', 'regression', '--horizons', '2,6,8,12,16', '--top-n', '20']
+    },
+    {
+        'name': 'Low Cost Small Train',
+        'prefix': 'lunar_test_lowcost_smalltrain',
+        'args': ['--transaction-cost', '0.001', '--min-train-rows', '50', '--horizons', '2,8,12', '--model-type', 'classification', '--pos-threshold', '0.0']
+    },
+    {
+        'name': 'High Volume Custom Exclude',
+        'prefix': 'lunar_test_highvol',
+        'args': ['--exclude-symbols', 'BTC', 'ETH', 'USDT', '--min-mean-volume', '500000', '--horizons', '6,8,12,16,24', '--model-type', 'regression']
+    },
+]
+
+
+def run_analysis(config, db_path):
+    """Run the analysis script with given config."""
+    prefix = config['prefix']
+    cmd = ['python3', 'lunarcrush_analysis_refactored_v3.py', '--db', db_path, '--output-prefix', prefix] + config['args']
+    print(f"[RUN] Executing: {' '.join(cmd)}")
+    try:
+        subprocess.run(cmd, check=True)
+        print(f"[RUN] Completed: {config['name']} (prefix: {prefix})")
+    except subprocess.CalledProcessError as e:
+        print(f"[ERROR] Failed to run {config['name']}: {e}")
+        return False
+    return True
+
+def collect_results(prefix, horizons):
+    """Collect key results from output files for a given prefix and its horizons."""
+    results = {'summary': {}, 'quintiles': {}, 'portfolio_stats': {}, 'rule_stats': None}
+    
+    # Read summary.txt
+    summary_path = f"{prefix}_summary.txt"
+    if Path(summary_path).exists():
+        with open(summary_path, 'r') as f:
+            content = f.read()
+            # Parse key metrics (assuming structured format)
+            lines = content.splitlines()
+            results['summary']['symbols'] = next((l.split(': ')[1] for l in lines if 'Symbols' in l), 'N/A')
+            results['summary']['records'] = next((l.split(': ')[1] for l in lines if 'Records' in l), 'N/A')
+            results['summary']['horizons'] = {}
+            for h in horizons:
+                h_section = f"--- Horizon {h}h ---"
+                if h_section in content:
+                    start = content.find(h_section)
+                    end = content.find('---', start + len(h_section))
+                    section = content[start:end] if end > 0 else content[start:]
+                    metrics = {}
+                    for line in section.splitlines():
+                        if ':' in line and not line.startswith('---'):
+                            k, v = line.split(':', 1)
+                            metrics[k.strip()] = v.strip()
+                    results['summary']['horizons'][h] = metrics
+
+    # Read per-horizon files
+    for h in horizons:
+        h_str = f"{h}h"
+        
+        # Quintile stats
+        quint_path = f"{prefix}_{h_str}_quintile_stats.csv"
+        if Path(quint_path).exists():
+            df = pd.read_csv(quint_path)
+            results['quintiles'][h] = df.to_dict(orient='records')
+        
+        # Portfolio stats (e.g., avg return, sharpe)
+        port_path = f"{prefix}_{h_str}_model_portfolio.csv"
+        if Path(port_path).exists():
+            df = pd.read_csv(port_path)
+            if not df.empty:
+                rets = df['return']
+                mean_ret = rets.mean()
+                std_ret = rets.std()
+                sharpe = mean_ret / std_ret if std_ret != 0 else 0
+                results['portfolio_stats'][h] = {
+                    'mean_return': mean_ret,
+                    'std_return': std_ret,
+                    'sharpe_ratio': sharpe,
+                    'num_periods': len(df),
+                    'final_growth': (1 + rets).prod()
+                }
+        
+        # Rule portfolio if exists
+        rule_path = f"{prefix}_{h_str}_rule_portfolio.csv"
+        if Path(rule_path).exists():
+            df = pd.read_csv(rule_path)
+            if not df.empty:
+                rets = df['return']
+                mean_ret = rets.mean()
+                std_ret = rets.std()
+                sharpe = mean_ret / std_ret if std_ret != 0 else 0
+                if results['rule_stats'] is None:
+                    results['rule_stats'] = {}
+                results['rule_stats'][h] = {
+                    'mean_return': mean_ret,
+                    'std_return': std_ret,
+                    'sharpe_ratio': sharpe,
+                    'num_periods': len(df),
+                    'final_growth': (1 + rets).prod()
+                }
+
+    return results
+
+def analyze_and_summarize(all_results, output_file):
+    """Analyze collected results and write to TXT file."""
+    with open(output_file, 'w') as f:
+        f.write(f"LunarCrush Multi-Config Analysis Summary\n")
+        f.write(f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write("=========================================\n\n")
+        
+        for prefix, results in all_results.items():
+            config = next(c for c in CONFIGS if c['prefix'] == prefix)
+            f.write(f"--- Config: {config['name']} (prefix: {prefix}) ---\n")
+            f.write(f"CLI Args: {' '.join(config['args'])}\n\n")
+            
+            summary = results.get('summary', {})
+            f.write("Overall Summary:\n")
+            f.write(f"Symbols: {summary.get('symbols', 'N/A')}\n")
+            f.write(f"Records: {summary.get('records', 'N/A')}\n\n")
+            
+            for h, h_metrics in summary.get('horizons', {}).items():
+                f.write(f"Horizon {h}h Metrics:\n")
+                for k, v in h_metrics.items():
+                    f.write(f"  {k}: {v}\n")
+                f.write("\n")
+            
+            f.write("Portfolio Stats (Model):\n")
+            for h, stats in results.get('portfolio_stats', {}).items():
+                f.write(f"  Horizon {h}h:\n")
+                for k, v in stats.items():
+                    f.write(f"    {k}: {v:.4f}\n")
+            f.write("\n")
+            
+            if results.get('rule_stats'):
+                f.write("Portfolio Stats (Rule):\n")
+                for h, stats in results['rule_stats'].items():
+                    f.write(f"  Horizon {h}h:\n")
+                    for k, v in stats.items():
+                        f.write(f"    {k}: {v:.4f}\n")
+                f.write("\n")
+            
+            f.write("Quintile Stats:\n")
+            for h, quints in results.get('quintiles', {}).items():
+                f.write(f"  Horizon {h}h:\n")
+                for row in quints:
+                    f.write(f"    Quintile {row.get('score_quintile', 'N/A')}: Count={row.get('count', 'N/A')}, Mean={row.get('mean', 'N/A'):.4f}, Std={row.get('std', 'N/A'):.4f}\n")
+            f.write("\n\n")
+        
+        # Cross-config analysis
+        f.write("Cross-Config Comparison:\n")
+        f.write("========================\n")
+        
+        # Best mean return per horizon
+        all_mean_returns = {}
+        for prefix, results in all_results.items():
+            config = next(c for c in CONFIGS if c['prefix'] == prefix)
+            for h, stats in results.get('portfolio_stats', {}).items():
+                if h not in all_mean_returns:
+                    all_mean_returns[h] = []
+                all_mean_returns[h].append((config['name'], stats['mean_return']))
+        
+        for h, vals in all_mean_returns.items():
+            if vals:
+                best = max(vals, key=lambda x: x[1])
+                f.write(f"Best Mean Return for {h}h: {best[0]} ({best[1]:.4f})\n")
+        
+        f.write("\nDone.\n")
+
+def extract_horizons_from_args(args):
+    """Extract horizons from --horizons arg."""
+    for i, arg in enumerate(args):
+        if arg == '--horizons':
+            return [int(x) for x in args[i+1].split(',')]
+    return []  # Default empty, will skip if no horizons
+
+def plot_growth_curve(portfolio_df, label, color, out_path):
+    """Plot cumulative growth curve for a given portfolio."""
+    if portfolio_df.empty:
+        return None
+    cumulative = (1 + portfolio_df['return']).cumprod()
+    plt.figure(figsize=(6, 4))
+    plt.plot(cumulative.index, cumulative.values, label=label, color=color)
+    plt.title(f"Cumulative Growth: {label}")
+    plt.xlabel("Periods")
+    plt.ylabel("Growth (x)")
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig(out_path)
+    plt.close()
+    return out_path
+
+def plot_quintile_bars(quintile_df, out_path, horizon):
+    """Plot quintile mean return bars."""
+    if quintile_df.empty:
+        return None
+    plt.figure(figsize=(6, 4))
+    plt.bar(quintile_df['score_quintile'], quintile_df['mean'], color='skyblue')
+    plt.title(f"Quintile Mean Returns ({horizon}h)")
+    plt.xlabel("Quintile")
+    plt.ylabel("Mean Return")
+    plt.grid(axis='y', linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig(out_path)
+    plt.close()
+    return out_path
+
+def generate_pdf_report(all_results, output_pdf):
+    """Generate a visual PDF report from results."""
+    doc = SimpleDocTemplate(output_pdf, pagesize=letter)
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph("LunarCrush Multi-Config Visual Report", styles['Title']))
+    story.append(Paragraph(f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
+    story.append(Spacer(1, 20))
+
+    for prefix, results in all_results.items():
+        story.append(Paragraph(f"Configuration: {prefix}", styles['Heading1']))
+        horizons = list(results.get('portfolio_stats', {}).keys())
+
+        for h in horizons:
+            story.append(Paragraph(f"Horizon {h}h", styles['Heading2']))
+            
+            # Plot growth curve
+            port_path = f"{prefix}_{h}h_model_portfolio.csv"
+            rule_path = f"{prefix}_{h}h_rule_portfolio.csv"
+            if Path(port_path).exists():
+                df_model = pd.read_csv(port_path)
+                img_path = f"{prefix}_{h}h_model_growth.png"
+                plot_growth_curve(df_model, "Model", "blue", img_path)
+                story.append(Image(img_path, width=400, height=250))
+            
+            if Path(rule_path).exists():
+                df_rule = pd.read_csv(rule_path)
+                img_path = f"{prefix}_{h}h_rule_growth.png"
+                plot_growth_curve(df_rule, "Rule", "red", img_path)
+                story.append(Image(img_path, width=400, height=250))
+
+            # Plot quintiles
+            quint_path = f"{prefix}_{h}h_quintile_stats.csv"
+            if Path(quint_path).exists():
+                df_quint = pd.read_csv(quint_path)
+                img_path = f"{prefix}_{h}h_quintile.png"
+                plot_quintile_bars(df_quint, img_path, h)
+                story.append(Image(img_path, width=400, height=250))
+            
+            story.append(PageBreak())
+
+    doc.build(story)
+    print(f"[PDF] Wrote visual report to {output_pdf}")
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument('--db', default='lunarcrush.db', help="Path to SQLite DB")
+    p.add_argument('--output-file', default='full_results_summary.txt', help="Output TXT file")
+    p.add_argument('--output-pdf', default='visual_report.pdf', help="Output PDF file with charts")
+    args = p.parse_args()
+
+    all_results = {}
+    for config in CONFIGS:
+        success = run_analysis(config, args.db)
+        if success:
+            horizons = extract_horizons_from_args(config['args'])
+            if horizons:
+                results = collect_results(config['prefix'], horizons)
+                all_results[config['prefix']] = results
+
+    analyze_and_summarize(all_results, args.output_file)
+    generate_pdf_report(all_results, args.output_pdf)
+
+    print(f"[MAIN] Wrote summary TXT to {args.output_file} and PDF to {args.output_pdf}")
+
+if __name__ == '__main__':
+    main()
