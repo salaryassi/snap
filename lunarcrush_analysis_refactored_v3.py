@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 """
-lunarcrush_analysis_refactored_v2.py
+lunarcrush_analysis_refactored_v3.py
+
+Refactored for better performance on small datasets:
+ - Fill NaNs in features with 0 instead of dropping rows.
+ - Remove direct price movement features to focus on other metrics (social, liquidity, etc.) for predicting price action.
+ - Add class_weight='balanced' for classification to handle potential imbalance.
+ - Add alpha/C regularization parameter via CLI.
+ - Output merged predictions + actual returns CSV for further analysis.
+ - Output quintile stats CSV to evaluate strategy effectiveness.
+ - Fixed typo in candidate_features for market_cap.
 
 Features:
  - alt_rank + social + liquidity features (rolling means/std and z-scores)
@@ -180,37 +189,18 @@ def walk_forward_rank_and_backtest(df: pd.DataFrame,
                                    min_train_rows=200,
                                    model_type='regression',
                                    pos_threshold=0.0,
+                                   reg_param=1.0,
                                    verbose=True):
     """
     net_col: e.g., 'net_return_2h' (string)
     If model_type == 'classification', y_train_cls = (y_train > pos_threshold)
+    reg_param: alpha for Ridge, C for Logistic
     """
     df = df.copy()
-    has_col = df.columns[df.columns.str.contains('has_entry_exit')]
-    # Select rows where the relevant has_entry_exit for this horizon is True
-    # We'll assume net_col corresponds to pattern 'net_return_{h}h' and has 'has_entry_exit_{h}h'
-    # find matching has column:
-    htag = net_col.replace('net_return_', '').replace('_', '')
-    # Safe way: find has column containing the horizon number
-    possible_has = [c for c in df.columns if c.startswith('has_entry_exit_') and net_col.split('_')[2] in c]
-    # fallback: use any has_entry_exit_* that aligns - safest approach: require net_col exists and has_entry_exit_{h}h exists
-    has_col_name = None
-    # Try exact match:
-    candidate = f'has_entry_exit_{net_col.split("_")[2]}'
-    # But our naming is has_entry_exit_{h}h
-    if f'has_entry_exit_{net_col.split("_")[2]}' in df.columns:
-        has_col_name = f'has_entry_exit_{net_col.split("_")[2]}'
-    else:
-        # fallback pattern: find column that contains net_col's horizon token
-        tokens = [tok for tok in net_col.split('_') if tok.endswith('h')]
-        if tokens:
-            token = tokens[0]
-            for c in df.columns:
-                if token in c and c.startswith('has_entry_exit'):
-                    has_col_name = c
-                    break
-    # if still None, just use rows where net_col notna
-    if has_col_name is None:
+    # find matching has_col_name
+    h_str = net_col.split('_')[2]  # e.g., '2h'
+    has_col_name = f'has_entry_exit_{h_str}'
+    if has_col_name not in df.columns:
         mask_valid = df[net_col].notna()
     else:
         mask_valid = df[has_col_name] & df[net_col].notna()
@@ -226,8 +216,8 @@ def walk_forward_rank_and_backtest(df: pd.DataFrame,
         train_mask = df['snapshot_time'].isin(train_times)
         test_mask  = df['snapshot_time'] == test_time
 
-        X_train = df.loc[train_mask, feature_cols].dropna()
-        y_train = df.loc[X_train.index, net_col]
+        X_train = df.loc[train_mask, feature_cols].fillna(0)
+        y_train = df.loc[train_mask, net_col]  # indices align with train_mask since no drop
 
         if len(X_train) < min_train_rows:
             if verbose and i % 50 == 0:
@@ -239,14 +229,14 @@ def walk_forward_rank_and_backtest(df: pd.DataFrame,
             # skip if target constant
             if y_train.nunique() <= 1:
                 continue
-            model = Ridge(alpha=1.0)
+            model = Ridge(alpha=reg_param)
         else:
             y_train_cls = (y_train > pos_threshold).astype(int)
             if y_train_cls.nunique() <= 1:
                 continue
-            model = LogisticRegression(max_iter=1000)
+            model = LogisticRegression(max_iter=1000, C=reg_param, class_weight='balanced')
 
-        X_test = df.loc[test_mask, feature_cols].dropna()
+        X_test = df.loc[test_mask, feature_cols].fillna(0)
         if X_test.empty:
             continue
 
@@ -315,14 +305,16 @@ def main():
     p.add_argument('--min-snapshots', type=int, default=24)
     p.add_argument('--top-n', type=int, default=20)
     p.add_argument('--transaction-cost', type=float, default=0.002)
-    p.add_argument('--output-prefix', default='lunar_ref_v2')
+    p.add_argument('--output-prefix', default='lunar_ref_v3')
     p.add_argument('--min-mean-volume', type=float, default=0.0)
     p.add_argument('--exclude-symbols', nargs='*', default=['USDT','USDC','BUSD','DAI'])
     p.add_argument('--min-train-rows', type=int, default=200)
     p.add_argument('--model-type', choices=['regression','classification'], default='regression')
+    p.add_argument('--reg-param', type=float, default=1.0, help="Regularization: alpha for Ridge, C for Logistic")
     p.add_argument('--run-rule', action='store_true', default=False)
     p.add_argument('--horizons', default='2,6,24', help="Comma-separated horizons in hours, e.g. '2,6,24'")
     p.add_argument('--pos-threshold', type=float, default=0.0, help="Positive threshold (e.g. 0.005 for +0.5%) used for classification")
+    p.add_argument('--verbose', action='store_true', default=True)
     args = p.parse_args()
 
     out_pref = args.output_prefix
@@ -349,7 +341,7 @@ def main():
     df.to_csv(features_csv, index=False)
     print(f"[main] saved features -> {features_csv}")
 
-    # common candidate features (strong on alt_rank + social + liquidity)
+    # candidate features focused on non-price metrics (removed direct price_z, price_return, volatility)
     candidate_features = [
         'alt_rank', 'alt_rank_delta_1', 'alt_rank_pct_change_1',
         'alt_rank_3h_mean','alt_rank_3h_std','alt_rank_3h_z',
@@ -359,10 +351,7 @@ def main():
         'social_volume_24h_3h_z','social_volume_24h_6h_z',
         'interactions_24h_3h_z','interactions_24h_6h_z',
         'volume_24h_3h_z','volume_24h_6h_z',
-        'market_cap_24h_mean','market_cap_24h_3h_z',
-        'price_3h_z','price_6h_z','price_12h_z',
-        'price_return_1h','price_return_2h',
-        'volatility_3h','volatility_6h','volatility_12h',
+        'market_cap_24h_mean','market_cap_3h_z',
         'altZ_volZ_3h','altZ_socialZ_3h'
     ]
     # keep existing columns only
@@ -415,7 +404,8 @@ def main():
             min_train_rows=args.min_train_rows,
             model_type=args.model_type,
             pos_threshold=args.pos_threshold,
-            verbose=True
+            reg_param=args.reg_param,
+            verbose=args.verbose
         )
 
         pred_csv = f"{out_pref}{suffix}_model_predictions.csv"
@@ -425,12 +415,27 @@ def main():
         print(f"[main] wrote predictions -> {pred_csv}")
         print(f"[main] wrote portfolio -> {port_csv}")
 
-        # per-symbol stats
+        # per-symbol stats and merged actuals
         if not pred_df.empty:
             merged = pred_df.merge(df[['snapshot_time','symbol', net_col]], on=['snapshot_time','symbol'], how='left')
             per_sym = merged.groupby('symbol')[net_col].agg(['count','mean','std']).sort_values('mean', ascending=False)
             per_sym.to_csv(f"{out_pref}{suffix}_per_symbol_stats.csv")
             print(f"[main] wrote per-symbol stats -> {out_pref}{suffix}_per_symbol_stats.csv")
+
+            # merged actuals for further analysis
+            merged_csv = f"{out_pref}{suffix}_model_actuals.csv"
+            merged.to_csv(merged_csv, index=False)
+            print(f"[main] wrote predictions + actuals -> {merged_csv}")
+
+            # quintile stats
+            try:
+                merged['score_quintile'] = pd.qcut(merged['score'], q=5, labels=False, duplicates='drop')
+                quint_stats = merged.groupby('score_quintile')[net_col].agg(['count','mean','std'])
+                quint_stats_csv = f"{out_pref}{suffix}_quintile_stats.csv"
+                quint_stats.to_csv(quint_stats_csv)
+                print(f"[main] wrote quintile stats -> {quint_stats_csv}")
+            except ValueError:
+                print("[main] skipping quintile stats (insufficient unique scores)")
         else:
             print(f"[main] no predictions for horizon {h}h")
 
@@ -462,7 +467,7 @@ def main():
 
     # write master summary
     with open(f"{out_pref}_summary.txt", 'w') as fh:
-        fh.write("LunarCrush refactored Analysis Summary (v2)\n")
+        fh.write("LunarCrush refactored Analysis Summary (v3)\n")
         fh.write("==========================================\n")
         fh.write(f"DB path: {args.db}\n")
         fh.write(f"Symbols (after filter): {total_symbols}\n")

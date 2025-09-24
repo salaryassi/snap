@@ -1,0 +1,18 @@
+LunarCrush refactored Analysis Summary (v3)
+==========================================
+DB path: lunarcrush.db
+Symbols (after filter): 95
+Records: 3598
+
+Features used:
+alt_rank, alt_rank_delta_1, alt_rank_pct_change_1, alt_rank_3h_mean, alt_rank_3h_std, alt_rank_3h_z, alt_rank_6h_mean, alt_rank_6h_std, alt_rank_6h_z, alt_rank_12h_mean, alt_rank_12h_std, alt_rank_12h_z, alt_rank_pct_rank, social_volume_24h_3h_z, social_volume_24h_6h_z, interactions_24h_3h_z, interactions_24h_6h_z, volume_24h_3h_z, volume_24h_6h_z, market_cap_24h_mean, market_cap_3h_z, altZ_volZ_3h, altZ_socialZ_3h
+
+Horizons tried: [2, 6]
+pos_threshold (for classification): 0.0
+
+--- Horizon 2h ---
+{'count': 32, 'mean': -0.002535549332518749, 'std': 0.005262257596219557, 'final_growth': 0.9215734457080819, 'win_frac': 0.375}
+
+--- Horizon 6h ---
+{'count': 28, 'mean': -0.0010082239101022379, 'std': 0.009055069153279515, 'final_growth': 0.9710697029575471, 'win_frac': 0.5}
+
