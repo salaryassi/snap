@@ -1,0 +1,19 @@
+LunarCrush Analysis Summary
+===========================
+DB path: lunarcrush.db
+Symbols (after filter): 98
+Records: 3712
+
+Features used:
+alt_rank_3h_z, volume_24h_3h_z, price_3h_z, price_return_1h, volatility_6h, altZ_volZ_3h
+
+Logistic CV:
+{'precision_mean': np.float64(0.5059033401245682), 'recall_mean': np.float64(0.42277483189253434), 'f1_mean': np.float64(0.42574115098329957), 'auc_mean': np.float64(0.5461659458056316)}
+
+Rule-based cumulative return (final growth):
+0.0
+Model-based cumulative return (final growth):
+-0.08369606034350885
+
+Permutation test results (observed_mean, null_mean, pvalue):
+(np.float64(0.0), np.float64(0.0), 1.0)
