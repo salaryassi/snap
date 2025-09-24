@@ -7,9 +7,15 @@ Records: 3598
 Features used:
 alt_rank, alt_rank_delta_1, alt_rank_pct_change_1, alt_rank_3h_mean, alt_rank_3h_std, alt_rank_3h_z, alt_rank_6h_mean, alt_rank_6h_std, alt_rank_6h_z, alt_rank_12h_mean, alt_rank_12h_std, alt_rank_12h_z, alt_rank_pct_rank, social_volume_24h_3h_z, social_volume_24h_6h_z, interactions_24h_3h_z, interactions_24h_6h_z, volume_24h_3h_z, volume_24h_6h_z, market_cap_24h_mean, market_cap_3h_z, altZ_volZ_3h, altZ_socialZ_3h
 
-Horizons tried: [2]
+Horizons tried: [2, 8, 12]
 pos_threshold (for classification): 0.0
 
 --- Horizon 2h ---
 {'count': 32, 'mean': -0.0018903096086287563, 'std': 0.006669114203624315, 'final_growth': 0.9405979133030643, 'win_frac': 0.375}
+
+--- Horizon 8h ---
+{'count': 26, 'mean': 0.0010357350988776854, 'std': 0.01085285099436207, 'final_growth': 1.025770638785607, 'win_frac': 0.7307692307692307}
+
+--- Horizon 12h ---
+{'count': 22, 'mean': 0.0030803196537244116, 'std': 0.01612246451676838, 'final_growth': 1.067109195915991, 'win_frac': 0.6363636363636364}
 

@@ -1,9 +1,9 @@
 LunarCrush Multi-Config Analysis Summary
-Generated: 2025-09-24 17:07:13
+Generated: 2025-09-24 17:50:15
 =========================================
 
 --- Config: Regression Short Horizon (prefix: lunar_test_regression_h2) ---
-CLI Args: --model-type regression --horizons 2 --top-n 10 --reg-param 1.0
+CLI Args: --model-type regression --horizons 2,8,12 --top-n 10 --reg-param 1.0
 
 Overall Summary:
 Symbols: 95
@@ -12,6 +12,12 @@ Records: 3598
 Horizon 2h Metrics:
   {'count': 32, 'mean': -0.0018903096086287563, 'std': 0.006669114203624315, 'final_growth': 0.9405979133030643, 'win_frac': 0.375}
 
+Horizon 8h Metrics:
+  {'count': 26, 'mean': 0.0010357350988776854, 'std': 0.01085285099436207, 'final_growth': 1.025770638785607, 'win_frac': 0.7307692307692307}
+
+Horizon 12h Metrics:
+  {'count': 22, 'mean': 0.0030803196537244116, 'std': 0.01612246451676838, 'final_growth': 1.067109195915991, 'win_frac': 0.6363636363636364}
+
 Portfolio Stats (Model):
   Horizon 2h:
     mean_return: -0.0019
@@ -19,6 +25,18 @@ Portfolio Stats (Model):
     sharpe_ratio: -0.2834
     num_periods: 32.0000
     final_growth: 0.9406
+  Horizon 8h:
+    mean_return: 0.0010
+    std_return: 0.0109
+    sharpe_ratio: 0.0954
+    num_periods: 26.0000
+    final_growth: 1.0258
+  Horizon 12h:
+    mean_return: 0.0031
+    std_return: 0.0161
+    sharpe_ratio: 0.1911
+    num_periods: 22.0000
+    final_growth: 1.0671
 
 Quintile Stats:
   Horizon 2h:
@@ -27,10 +45,22 @@ Quintile Stats:
     Quintile 2: Count=605, Mean=-0.0029, Std=0.0123
     Quintile 3: Count=606, Mean=-0.0037, Std=0.0121
     Quintile 4: Count=606, Mean=-0.0026, Std=0.0149
+  Horizon 8h:
+    Quintile 0: Count=492, Mean=-0.0070, Std=0.0201
+    Quintile 1: Count=492, Mean=-0.0043, Std=0.0175
+    Quintile 2: Count=491, Mean=-0.0035, Std=0.0191
+    Quintile 3: Count=492, Mean=-0.0016, Std=0.0203
+    Quintile 4: Count=492, Mean=0.0005, Std=0.0282
+  Horizon 12h:
+    Quintile 0: Count=416, Mean=-0.0076, Std=0.0233
+    Quintile 1: Count=416, Mean=-0.0042, Std=0.0164
+    Quintile 2: Count=415, Mean=-0.0040, Std=0.0234
+    Quintile 3: Count=416, Mean=-0.0049, Std=0.0234
+    Quintile 4: Count=416, Mean=-0.0007, Std=0.0393
 
 
 --- Config: Regression High Reg (prefix: lunar_test_regression_highreg) ---
-CLI Args: --model-type regression --reg-param 10.0 --horizons 2,6 --top-n 30 --min-train-rows 100
+CLI Args: --model-type regression --reg-param 10.0 --horizons 2,6,8,12,16 --top-n 30 --min-train-rows 100
 
 Overall Summary:
 Symbols: 95
@@ -41,6 +71,15 @@ Horizon 2h Metrics:
 
 Horizon 6h Metrics:
   {'count': 29, 'mean': -0.0017283916990226582, 'std': 0.00919800125994814, 'final_growth': 0.9499371945510473, 'win_frac': 0.5172413793103449}
+
+Horizon 8h Metrics:
+  {'count': 27, 'mean': -0.001284785077269728, 'std': 0.008675676634013842, 'final_growth': 0.9649351126877974, 'win_frac': 0.5185185185185185}
+
+Horizon 12h Metrics:
+  {'count': 23, 'mean': -0.0002215616728571861, 'std': 0.013139903760492589, 'final_growth': 0.9930283560855253, 'win_frac': 0.5217391304347826}
+
+Horizon 16h Metrics:
+  {'count': 19, 'mean': -0.001303617147122326, 'std': 0.009046733150838513, 'final_growth': 0.9748018107562442, 'win_frac': 0.42105263157894735}
 
 Portfolio Stats (Model):
   Horizon 2h:
@@ -55,6 +94,24 @@ Portfolio Stats (Model):
     sharpe_ratio: -0.1879
     num_periods: 29.0000
     final_growth: 0.9499
+  Horizon 8h:
+    mean_return: -0.0013
+    std_return: 0.0087
+    sharpe_ratio: -0.1481
+    num_periods: 27.0000
+    final_growth: 0.9649
+  Horizon 12h:
+    mean_return: -0.0002
+    std_return: 0.0131
+    sharpe_ratio: -0.0169
+    num_periods: 23.0000
+    final_growth: 0.9930
+  Horizon 16h:
+    mean_return: -0.0013
+    std_return: 0.0090
+    sharpe_ratio: -0.1441
+    num_periods: 19.0000
+    final_growth: 0.9748
 
 Quintile Stats:
   Horizon 2h:
@@ -69,10 +126,28 @@ Quintile Stats:
     Quintile 2: Count=549, Mean=-0.0026, Std=0.0187
     Quintile 3: Count=548, Mean=-0.0028, Std=0.0193
     Quintile 4: Count=549, Mean=0.0010, Std=0.0242
+  Horizon 8h:
+    Quintile 0: Count=511, Mean=-0.0054, Std=0.0189
+    Quintile 1: Count=510, Mean=-0.0047, Std=0.0194
+    Quintile 2: Count=511, Mean=-0.0026, Std=0.0185
+    Quintile 3: Count=510, Mean=-0.0018, Std=0.0212
+    Quintile 4: Count=511, Mean=0.0006, Std=0.0278
+  Horizon 12h:
+    Quintile 0: Count=435, Mean=-0.0070, Std=0.0224
+    Quintile 1: Count=434, Mean=-0.0045, Std=0.0168
+    Quintile 2: Count=435, Mean=-0.0028, Std=0.0228
+    Quintile 3: Count=434, Mean=-0.0033, Std=0.0244
+    Quintile 4: Count=435, Mean=-0.0002, Std=0.0430
+  Horizon 16h:
+    Quintile 0: Count=359, Mean=-0.0095, Std=0.0243
+    Quintile 1: Count=358, Mean=-0.0063, Std=0.0197
+    Quintile 2: Count=359, Mean=-0.0049, Std=0.0211
+    Quintile 3: Count=358, Mean=-0.0059, Std=0.0243
+    Quintile 4: Count=359, Mean=0.0006, Std=0.0449
 
 
 --- Config: Classification Pos Threshold (prefix: lunar_test_class_pos05) ---
-CLI Args: --model-type classification --pos-threshold 0.005 --horizons 6 --top-n 15 --reg-param 0.1
+CLI Args: --model-type classification --pos-threshold 0.005 --horizons 6,8,12 --top-n 15 --reg-param 0.1
 
 Overall Summary:
 Symbols: 95
@@ -81,6 +156,12 @@ Records: 3598
 Horizon 6h Metrics:
   {'count': 28, 'mean': -0.002213842936407804, 'std': 0.010183948464770175, 'final_growth': 0.9385070301931722, 'win_frac': 0.4642857142857143}
 
+Horizon 8h Metrics:
+  {'count': 26, 'mean': -0.0007639727988040553, 'std': 0.01040128121153812, 'final_growth': 0.9789990781499893, 'win_frac': 0.5384615384615384}
+
+Horizon 12h Metrics:
+  {'count': 22, 'mean': -0.004556153017776762, 'std': 0.010941857355638409, 'final_growth': 0.9032662093826599, 'win_frac': 0.4090909090909091}
+
 Portfolio Stats (Model):
   Horizon 6h:
     mean_return: -0.0022
@@ -88,6 +169,18 @@ Portfolio Stats (Model):
     sharpe_ratio: -0.2174
     num_periods: 28.0000
     final_growth: 0.9385
+  Horizon 8h:
+    mean_return: -0.0008
+    std_return: 0.0104
+    sharpe_ratio: -0.0734
+    num_periods: 26.0000
+    final_growth: 0.9790
+  Horizon 12h:
+    mean_return: -0.0046
+    std_return: 0.0109
+    sharpe_ratio: -0.4164
+    num_periods: 22.0000
+    final_growth: 0.9033
 
 Quintile Stats:
   Horizon 6h:
@@ -96,19 +189,58 @@ Quintile Stats:
     Quintile 2: Count=529, Mean=-0.0032, Std=0.0172
     Quintile 3: Count=530, Mean=-0.0005, Std=0.0208
     Quintile 4: Count=530, Mean=0.0003, Std=0.0242
+  Horizon 8h:
+    Quintile 0: Count=492, Mean=-0.0060, Std=0.0174
+    Quintile 1: Count=492, Mean=-0.0045, Std=0.0194
+    Quintile 2: Count=491, Mean=-0.0033, Std=0.0197
+    Quintile 3: Count=492, Mean=-0.0028, Std=0.0217
+    Quintile 4: Count=492, Mean=0.0008, Std=0.0273
+  Horizon 12h:
+    Quintile 0: Count=416, Mean=-0.0054, Std=0.0189
+    Quintile 1: Count=416, Mean=-0.0069, Std=0.0199
+    Quintile 2: Count=415, Mean=-0.0059, Std=0.0246
+    Quintile 3: Count=416, Mean=-0.0023, Std=0.0303
+    Quintile 4: Count=416, Mean=-0.0009, Std=0.0344
 
 
 --- Config: Classification Low Reg Long Horizon (prefix: lunar_test_class_lowreg_h24) ---
-CLI Args: --model-type classification --reg-param 0.01 --horizons 24 --pos-threshold 0.002 --min-mean-volume 100000
+CLI Args: --model-type classification --reg-param 0.01 --horizons 8,12,16,24 --pos-threshold 0.002 --min-mean-volume 100000
 
 Overall Summary:
 Symbols: 92
 Records: 3484
 
+Horizon 8h Metrics:
+  {'count': 26, 'mean': -0.0010825102923508261, 'std': 0.009085865833282575, 'final_growth': 0.9712270173608076, 'win_frac': 0.38461538461538464}
+
+Horizon 12h Metrics:
+  {'count': 22, 'mean': -0.002329108387239431, 'std': 0.011890040687772828, 'final_growth': 0.9485788237173447, 'win_frac': 0.45454545454545453}
+
+Horizon 16h Metrics:
+  {'count': 18, 'mean': -0.002075701657720554, 'std': 0.009586481374459862, 'final_growth': 0.9625372301658734, 'win_frac': 0.3888888888888889}
+
 Horizon 24h Metrics:
   {'count': 10, 'mean': 0.0023032225659090832, 'std': 0.009783521350324991, 'final_growth': 1.0228326497603615, 'win_frac': 0.6}
 
 Portfolio Stats (Model):
+  Horizon 8h:
+    mean_return: -0.0011
+    std_return: 0.0091
+    sharpe_ratio: -0.1191
+    num_periods: 26.0000
+    final_growth: 0.9712
+  Horizon 12h:
+    mean_return: -0.0023
+    std_return: 0.0119
+    sharpe_ratio: -0.1959
+    num_periods: 22.0000
+    final_growth: 0.9486
+  Horizon 16h:
+    mean_return: -0.0021
+    std_return: 0.0096
+    sharpe_ratio: -0.2165
+    num_periods: 18.0000
+    final_growth: 0.9625
   Horizon 24h:
     mean_return: 0.0023
     std_return: 0.0098
@@ -117,6 +249,24 @@ Portfolio Stats (Model):
     final_growth: 1.0228
 
 Quintile Stats:
+  Horizon 8h:
+    Quintile 0: Count=477, Mean=-0.0041, Std=0.0194
+    Quintile 1: Count=476, Mean=-0.0062, Std=0.0196
+    Quintile 2: Count=476, Mean=-0.0045, Std=0.0208
+    Quintile 3: Count=476, Mean=-0.0020, Std=0.0199
+    Quintile 4: Count=476, Mean=0.0004, Std=0.0259
+  Horizon 12h:
+    Quintile 0: Count=403, Mean=-0.0063, Std=0.0184
+    Quintile 1: Count=402, Mean=-0.0059, Std=0.0220
+    Quintile 2: Count=403, Mean=-0.0058, Std=0.0242
+    Quintile 3: Count=402, Mean=-0.0036, Std=0.0276
+    Quintile 4: Count=403, Mean=-0.0003, Std=0.0355
+  Horizon 16h:
+    Quintile 0: Count=329, Mean=-0.0055, Std=0.0190
+    Quintile 1: Count=329, Mean=-0.0081, Std=0.0265
+    Quintile 2: Count=329, Mean=-0.0073, Std=0.0229
+    Quintile 3: Count=329, Mean=-0.0073, Std=0.0261
+    Quintile 4: Count=329, Mean=-0.0002, Std=0.0393
   Horizon 24h:
     Quintile 0: Count=182, Mean=-0.0073, Std=0.0232
     Quintile 1: Count=182, Mean=-0.0081, Std=0.0167
@@ -126,7 +276,7 @@ Quintile Stats:
 
 
 --- Config: Rule vs Model (prefix: lunar_test_rule_vs_model) ---
-CLI Args: --run-rule --model-type regression --horizons 2,6 --top-n 20
+CLI Args: --run-rule --model-type regression --horizons 2,6,8,12,16 --top-n 20
 
 Overall Summary:
 Symbols: 95
@@ -137,6 +287,15 @@ Horizon 2h Metrics:
 
 Horizon 6h Metrics:
   {'count': 28, 'mean': -0.0010082239101022379, 'std': 0.009055069153279515, 'final_growth': 0.9710697029575471, 'win_frac': 0.5}
+
+Horizon 8h Metrics:
+  {'count': 26, 'mean': -0.0007939379854816305, 'std': 0.009257897348481326, 'final_growth': 0.9785089953977635, 'win_frac': 0.5}
+
+Horizon 12h Metrics:
+  {'count': 22, 'mean': 0.00022836596515398344, 'std': 0.01299258077067838, 'final_growth': 1.0032578901165878, 'win_frac': 0.5909090909090909}
+
+Horizon 16h Metrics:
+  {'count': 18, 'mean': 0.0006924899007300999, 'std': 0.009315231410523699, 'final_growth': 1.011794829030802, 'win_frac': 0.5}
 
 Portfolio Stats (Model):
   Horizon 2h:
@@ -151,6 +310,24 @@ Portfolio Stats (Model):
     sharpe_ratio: -0.1113
     num_periods: 28.0000
     final_growth: 0.9711
+  Horizon 8h:
+    mean_return: -0.0008
+    std_return: 0.0093
+    sharpe_ratio: -0.0858
+    num_periods: 26.0000
+    final_growth: 0.9785
+  Horizon 12h:
+    mean_return: 0.0002
+    std_return: 0.0130
+    sharpe_ratio: 0.0176
+    num_periods: 22.0000
+    final_growth: 1.0033
+  Horizon 16h:
+    mean_return: 0.0007
+    std_return: 0.0093
+    sharpe_ratio: 0.0743
+    num_periods: 18.0000
+    final_growth: 1.0118
 
 Portfolio Stats (Rule):
   Horizon 2h:
@@ -160,6 +337,24 @@ Portfolio Stats (Rule):
     num_periods: 38.0000
     final_growth: 1.0000
   Horizon 6h:
+    mean_return: 0.0000
+    std_return: 0.0000
+    sharpe_ratio: 0.0000
+    num_periods: 38.0000
+    final_growth: 1.0000
+  Horizon 8h:
+    mean_return: 0.0000
+    std_return: 0.0000
+    sharpe_ratio: 0.0000
+    num_periods: 38.0000
+    final_growth: 1.0000
+  Horizon 12h:
+    mean_return: 0.0000
+    std_return: 0.0000
+    sharpe_ratio: 0.0000
+    num_periods: 38.0000
+    final_growth: 1.0000
+  Horizon 16h:
     mean_return: 0.0000
     std_return: 0.0000
     sharpe_ratio: 0.0000
@@ -179,10 +374,28 @@ Quintile Stats:
     Quintile 2: Count=529, Mean=-0.0025, Std=0.0171
     Quintile 3: Count=530, Mean=-0.0034, Std=0.0187
     Quintile 4: Count=530, Mean=0.0011, Std=0.0250
+  Horizon 8h:
+    Quintile 0: Count=492, Mean=-0.0070, Std=0.0201
+    Quintile 1: Count=492, Mean=-0.0043, Std=0.0175
+    Quintile 2: Count=491, Mean=-0.0035, Std=0.0191
+    Quintile 3: Count=492, Mean=-0.0016, Std=0.0203
+    Quintile 4: Count=492, Mean=0.0005, Std=0.0282
+  Horizon 12h:
+    Quintile 0: Count=416, Mean=-0.0076, Std=0.0233
+    Quintile 1: Count=416, Mean=-0.0042, Std=0.0164
+    Quintile 2: Count=415, Mean=-0.0040, Std=0.0234
+    Quintile 3: Count=416, Mean=-0.0049, Std=0.0234
+    Quintile 4: Count=416, Mean=-0.0007, Std=0.0393
+  Horizon 16h:
+    Quintile 0: Count=340, Mean=-0.0103, Std=0.0241
+    Quintile 1: Count=340, Mean=-0.0058, Std=0.0208
+    Quintile 2: Count=339, Mean=-0.0055, Std=0.0185
+    Quintile 3: Count=340, Mean=-0.0055, Std=0.0275
+    Quintile 4: Count=340, Mean=-0.0006, Std=0.0410
 
 
 --- Config: Low Cost Small Train (prefix: lunar_test_lowcost_smalltrain) ---
-CLI Args: --transaction-cost 0.001 --min-train-rows 50 --horizons 2 --model-type classification --pos-threshold 0.0
+CLI Args: --transaction-cost 0.001 --min-train-rows 50 --horizons 2,8,12 --model-type classification --pos-threshold 0.0
 
 Overall Summary:
 Symbols: 95
@@ -191,6 +404,12 @@ Records: 3598
 Horizon 2h Metrics:
   {'count': 34, 'mean': -0.0015917465195701115, 'std': 0.005408625451994775, 'final_growth': 0.9468192933311352, 'win_frac': 0.38235294117647056}
 
+Horizon 8h Metrics:
+  {'count': 28, 'mean': -0.0005337622076353056, 'std': 0.008383327934229964, 'final_growth': 0.9842261489584534, 'win_frac': 0.5357142857142857}
+
+Horizon 12h Metrics:
+  {'count': 24, 'mean': -0.0018513951064911393, 'std': 0.011304591939936097, 'final_growth': 0.9550882666866196, 'win_frac': 0.4166666666666667}
+
 Portfolio Stats (Model):
   Horizon 2h:
     mean_return: -0.0016
@@ -198,6 +417,18 @@ Portfolio Stats (Model):
     sharpe_ratio: -0.2943
     num_periods: 34.0000
     final_growth: 0.9468
+  Horizon 8h:
+    mean_return: -0.0005
+    std_return: 0.0084
+    sharpe_ratio: -0.0637
+    num_periods: 28.0000
+    final_growth: 0.9842
+  Horizon 12h:
+    mean_return: -0.0019
+    std_return: 0.0113
+    sharpe_ratio: -0.1638
+    num_periods: 24.0000
+    final_growth: 0.9551
 
 Quintile Stats:
   Horizon 2h:
@@ -206,10 +437,22 @@ Quintile Stats:
     Quintile 2: Count=644, Mean=-0.0012, Std=0.0120
     Quintile 3: Count=643, Mean=-0.0009, Std=0.0120
     Quintile 4: Count=644, Mean=0.0003, Std=0.0141
+  Horizon 8h:
+    Quintile 0: Count=530, Mean=-0.0034, Std=0.0214
+    Quintile 1: Count=529, Mean=-0.0015, Std=0.0217
+    Quintile 2: Count=530, Mean=-0.0000, Std=0.0219
+    Quintile 3: Count=529, Mean=0.0014, Std=0.0183
+    Quintile 4: Count=530, Mean=0.0005, Std=0.0232
+  Horizon 12h:
+    Quintile 0: Count=454, Mean=-0.0068, Std=0.0215
+    Quintile 1: Count=453, Mean=-0.0026, Std=0.0245
+    Quintile 2: Count=454, Mean=-0.0003, Std=0.0221
+    Quintile 3: Count=453, Mean=0.0018, Std=0.0368
+    Quintile 4: Count=454, Mean=0.0014, Std=0.0273
 
 
 --- Config: High Volume Custom Exclude (prefix: lunar_test_highvol) ---
-CLI Args: --exclude-symbols BTC ETH USDT --min-mean-volume 500000 --horizons 6,24 --model-type regression
+CLI Args: --exclude-symbols BTC ETH USDT --min-mean-volume 500000 --horizons 6,8,12,16,24 --model-type regression
 
 Overall Summary:
 Symbols: 86
@@ -217,6 +460,15 @@ Records: 3256
 
 Horizon 6h Metrics:
   {'count': 28, 'mean': -0.0010127557350137067, 'std': 0.009926370787761733, 'final_growth': 0.9707276173261346, 'win_frac': 0.5357142857142857}
+
+Horizon 8h Metrics:
+  {'count': 26, 'mean': -0.00028145805181148566, 'std': 0.0097974792687925, 'final_growth': 0.9915136110961272, 'win_frac': 0.5}
+
+Horizon 12h Metrics:
+  {'count': 22, 'mean': 0.0007839442181062525, 'std': 0.012410479699345696, 'final_growth': 1.0157462279316574, 'win_frac': 0.5454545454545454}
+
+Horizon 16h Metrics:
+  {'count': 18, 'mean': -0.0004652647146485232, 'std': 0.008127675678004896, 'final_growth': 0.9911030160995586, 'win_frac': 0.4444444444444444}
 
 Horizon 24h Metrics:
   {'count': 10, 'mean': 0.010358502470412404, 'std': 0.004249553680061995, 'final_growth': 1.108461089718852, 'win_frac': 1.0}
@@ -228,6 +480,24 @@ Portfolio Stats (Model):
     sharpe_ratio: -0.1020
     num_periods: 28.0000
     final_growth: 0.9707
+  Horizon 8h:
+    mean_return: -0.0003
+    std_return: 0.0098
+    sharpe_ratio: -0.0287
+    num_periods: 26.0000
+    final_growth: 0.9915
+  Horizon 12h:
+    mean_return: 0.0008
+    std_return: 0.0124
+    sharpe_ratio: 0.0632
+    num_periods: 22.0000
+    final_growth: 1.0157
+  Horizon 16h:
+    mean_return: -0.0005
+    std_return: 0.0081
+    sharpe_ratio: -0.0572
+    num_periods: 18.0000
+    final_growth: 0.9911
   Horizon 24h:
     mean_return: 0.0104
     std_return: 0.0042
@@ -242,6 +512,24 @@ Quintile Stats:
     Quintile 2: Count=479, Mean=-0.0034, Std=0.0196
     Quintile 3: Count=479, Mean=-0.0027, Std=0.0173
     Quintile 4: Count=480, Mean=0.0013, Std=0.0257
+  Horizon 8h:
+    Quintile 0: Count=445, Mean=-0.0072, Std=0.0195
+    Quintile 1: Count=445, Mean=-0.0049, Std=0.0190
+    Quintile 2: Count=445, Mean=-0.0025, Std=0.0207
+    Quintile 3: Count=445, Mean=-0.0014, Std=0.0176
+    Quintile 4: Count=445, Mean=0.0007, Std=0.0295
+  Horizon 12h:
+    Quintile 0: Count=377, Mean=-0.0073, Std=0.0234
+    Quintile 1: Count=376, Mean=-0.0052, Std=0.0179
+    Quintile 2: Count=376, Mean=-0.0033, Std=0.0233
+    Quintile 3: Count=376, Mean=-0.0042, Std=0.0238
+    Quintile 4: Count=376, Mean=-0.0006, Std=0.0403
+  Horizon 16h:
+    Quintile 0: Count=308, Mean=-0.0105, Std=0.0252
+    Quintile 1: Count=307, Mean=-0.0056, Std=0.0213
+    Quintile 2: Count=307, Mean=-0.0058, Std=0.0211
+    Quintile 3: Count=307, Mean=-0.0061, Std=0.0224
+    Quintile 4: Count=308, Mean=0.0012, Std=0.0445
   Horizon 24h:
     Quintile 0: Count=170, Mean=-0.0074, Std=0.0237
     Quintile 1: Count=170, Mean=-0.0068, Std=0.0235
@@ -253,7 +541,10 @@ Quintile Stats:
 Cross-Config Comparison:
 ========================
 Best Mean Return for 2h: Low Cost Small Train (-0.0016)
+Best Mean Return for 8h: Regression Short Horizon (0.0010)
+Best Mean Return for 12h: Regression Short Horizon (0.0031)
 Best Mean Return for 6h: Rule vs Model (-0.0010)
+Best Mean Return for 16h: Rule vs Model (0.0007)
 Best Mean Return for 24h: High Volume Custom Exclude (0.0104)
 
 Done.

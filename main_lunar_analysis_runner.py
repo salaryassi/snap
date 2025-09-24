@@ -33,39 +33,40 @@ CONFIGS = [
     {
         'name': 'Regression Short Horizon',
         'prefix': 'lunar_test_regression_h2',
-        'args': ['--model-type', 'regression', '--horizons', '2', '--top-n', '10', '--reg-param', '1.0']
+        'args': ['--model-type', 'regression', '--horizons', '2,8,12', '--top-n', '10', '--reg-param', '1.0']
     },
     {
         'name': 'Regression High Reg',
         'prefix': 'lunar_test_regression_highreg',
-        'args': ['--model-type', 'regression', '--reg-param', '10.0', '--horizons', '2,6', '--top-n', '30', '--min-train-rows', '100']
+        'args': ['--model-type', 'regression', '--reg-param', '10.0', '--horizons', '2,6,8,12,16', '--top-n', '30', '--min-train-rows', '100']
     },
     {
         'name': 'Classification Pos Threshold',
         'prefix': 'lunar_test_class_pos05',
-        'args': ['--model-type', 'classification', '--pos-threshold', '0.005', '--horizons', '6', '--top-n', '15', '--reg-param', '0.1']
+        'args': ['--model-type', 'classification', '--pos-threshold', '0.005', '--horizons', '6,8,12', '--top-n', '15', '--reg-param', '0.1']
     },
     {
         'name': 'Classification Low Reg Long Horizon',
         'prefix': 'lunar_test_class_lowreg_h24',
-        'args': ['--model-type', 'classification', '--reg-param', '0.01', '--horizons', '24', '--pos-threshold', '0.002', '--min-mean-volume', '100000']
+        'args': ['--model-type', 'classification', '--reg-param', '0.01', '--horizons', '8,12,16,24', '--pos-threshold', '0.002', '--min-mean-volume', '100000']
     },
     {
         'name': 'Rule vs Model',
         'prefix': 'lunar_test_rule_vs_model',
-        'args': ['--run-rule', '--model-type', 'regression', '--horizons', '2,6', '--top-n', '20']
+        'args': ['--run-rule', '--model-type', 'regression', '--horizons', '2,6,8,12,16', '--top-n', '20']
     },
     {
         'name': 'Low Cost Small Train',
         'prefix': 'lunar_test_lowcost_smalltrain',
-        'args': ['--transaction-cost', '0.001', '--min-train-rows', '50', '--horizons', '2', '--model-type', 'classification', '--pos-threshold', '0.0']
+        'args': ['--transaction-cost', '0.001', '--min-train-rows', '50', '--horizons', '2,8,12', '--model-type', 'classification', '--pos-threshold', '0.0']
     },
     {
         'name': 'High Volume Custom Exclude',
         'prefix': 'lunar_test_highvol',
-        'args': ['--exclude-symbols', 'BTC', 'ETH', 'USDT', '--min-mean-volume', '500000', '--horizons', '6,24', '--model-type', 'regression']
+        'args': ['--exclude-symbols', 'BTC', 'ETH', 'USDT', '--min-mean-volume', '500000', '--horizons', '6,8,12,16,24', '--model-type', 'regression']
     },
 ]
+
 
 def run_analysis(config, db_path):
     """Run the analysis script with given config."""

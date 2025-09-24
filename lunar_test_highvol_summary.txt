@@ -7,11 +7,20 @@ Records: 3256
 Features used:
 alt_rank, alt_rank_delta_1, alt_rank_pct_change_1, alt_rank_3h_mean, alt_rank_3h_std, alt_rank_3h_z, alt_rank_6h_mean, alt_rank_6h_std, alt_rank_6h_z, alt_rank_12h_mean, alt_rank_12h_std, alt_rank_12h_z, alt_rank_pct_rank, social_volume_24h_3h_z, social_volume_24h_6h_z, interactions_24h_3h_z, interactions_24h_6h_z, volume_24h_3h_z, volume_24h_6h_z, market_cap_24h_mean, market_cap_3h_z, altZ_volZ_3h, altZ_socialZ_3h
 
-Horizons tried: [6, 24]
+Horizons tried: [6, 8, 12, 16, 24]
 pos_threshold (for classification): 0.0
 
 --- Horizon 6h ---
 {'count': 28, 'mean': -0.0010127557350137067, 'std': 0.009926370787761733, 'final_growth': 0.9707276173261346, 'win_frac': 0.5357142857142857}
+
+--- Horizon 8h ---
+{'count': 26, 'mean': -0.00028145805181148566, 'std': 0.0097974792687925, 'final_growth': 0.9915136110961272, 'win_frac': 0.5}
+
+--- Horizon 12h ---
+{'count': 22, 'mean': 0.0007839442181062525, 'std': 0.012410479699345696, 'final_growth': 1.0157462279316574, 'win_frac': 0.5454545454545454}
+
+--- Horizon 16h ---
+{'count': 18, 'mean': -0.0004652647146485232, 'std': 0.008127675678004896, 'final_growth': 0.9911030160995586, 'win_frac': 0.4444444444444444}
 
 --- Horizon 24h ---
 {'count': 10, 'mean': 0.010358502470412404, 'std': 0.004249553680061995, 'final_growth': 1.108461089718852, 'win_frac': 1.0}
