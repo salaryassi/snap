@@ -20,10 +20,14 @@ Features:
 import argparse
 import subprocess
 import pandas as pd
+import matplotlib.pyplot as plt
 from pathlib import Path
 import datetime
 import os
 
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet
 # Define configurations: Each is a dict with 'name' and 'args' (list of CLI flags)
 CONFIGS = [
     {
@@ -223,10 +227,88 @@ def extract_horizons_from_args(args):
             return [int(x) for x in args[i+1].split(',')]
     return []  # Default empty, will skip if no horizons
 
+def plot_growth_curve(portfolio_df, label, color, out_path):
+    """Plot cumulative growth curve for a given portfolio."""
+    if portfolio_df.empty:
+        return None
+    cumulative = (1 + portfolio_df['return']).cumprod()
+    plt.figure(figsize=(6, 4))
+    plt.plot(cumulative.index, cumulative.values, label=label, color=color)
+    plt.title(f"Cumulative Growth: {label}")
+    plt.xlabel("Periods")
+    plt.ylabel("Growth (x)")
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig(out_path)
+    plt.close()
+    return out_path
+
+def plot_quintile_bars(quintile_df, out_path, horizon):
+    """Plot quintile mean return bars."""
+    if quintile_df.empty:
+        return None
+    plt.figure(figsize=(6, 4))
+    plt.bar(quintile_df['score_quintile'], quintile_df['mean'], color='skyblue')
+    plt.title(f"Quintile Mean Returns ({horizon}h)")
+    plt.xlabel("Quintile")
+    plt.ylabel("Mean Return")
+    plt.grid(axis='y', linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig(out_path)
+    plt.close()
+    return out_path
+
+def generate_pdf_report(all_results, output_pdf):
+    """Generate a visual PDF report from results."""
+    doc = SimpleDocTemplate(output_pdf, pagesize=letter)
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph("LunarCrush Multi-Config Visual Report", styles['Title']))
+    story.append(Paragraph(f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
+    story.append(Spacer(1, 20))
+
+    for prefix, results in all_results.items():
+        story.append(Paragraph(f"Configuration: {prefix}", styles['Heading1']))
+        horizons = list(results.get('portfolio_stats', {}).keys())
+
+        for h in horizons:
+            story.append(Paragraph(f"Horizon {h}h", styles['Heading2']))
+            
+            # Plot growth curve
+            port_path = f"{prefix}_{h}h_model_portfolio.csv"
+            rule_path = f"{prefix}_{h}h_rule_portfolio.csv"
+            if Path(port_path).exists():
+                df_model = pd.read_csv(port_path)
+                img_path = f"{prefix}_{h}h_model_growth.png"
+                plot_growth_curve(df_model, "Model", "blue", img_path)
+                story.append(Image(img_path, width=400, height=250))
+            
+            if Path(rule_path).exists():
+                df_rule = pd.read_csv(rule_path)
+                img_path = f"{prefix}_{h}h_rule_growth.png"
+                plot_growth_curve(df_rule, "Rule", "red", img_path)
+                story.append(Image(img_path, width=400, height=250))
+
+            # Plot quintiles
+            quint_path = f"{prefix}_{h}h_quintile_stats.csv"
+            if Path(quint_path).exists():
+                df_quint = pd.read_csv(quint_path)
+                img_path = f"{prefix}_{h}h_quintile.png"
+                plot_quintile_bars(df_quint, img_path, h)
+                story.append(Image(img_path, width=400, height=250))
+            
+            story.append(PageBreak())
+
+    doc.build(story)
+    print(f"[PDF] Wrote visual report to {output_pdf}")
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('--db', default='lunarcrush.db', help="Path to SQLite DB")
     p.add_argument('--output-file', default='full_results_summary.txt', help="Output TXT file")
+    p.add_argument('--output-pdf', default='visual_report.pdf', help="Output PDF file with charts")
     args = p.parse_args()
 
     all_results = {}
@@ -236,10 +318,12 @@ def main():
             horizons = extract_horizons_from_args(config['args'])
             if horizons:
                 results = collect_results(config['prefix'], horizons)
-                all_results[config['prefix']] = results  # Use prefix as key
+                all_results[config['prefix']] = results
 
     analyze_and_summarize(all_results, args.output_file)
-    print(f"[MAIN] Wrote full summary to {args.output_file}")
+    generate_pdf_report(all_results, args.output_pdf)
+
+    print(f"[MAIN] Wrote summary TXT to {args.output_file} and PDF to {args.output_pdf}")
 
 if __name__ == '__main__':
     main()
